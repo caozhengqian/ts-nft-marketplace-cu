@@ -3,6 +3,36 @@ import { useMemo } from "react"
 import NFTBox from "./NFTBox"
 import Link from "next/link"
 
+const GET_RECENT_NFTS=`
+query AllItemListeds {
+  allItemListeds(first: 20, orderBy: [BLOCK_NUMBER_DESC,TX_INDEX_DESC]){
+    nodes {
+      rindexerId
+      seller
+      nftAddress
+      price
+      tokenId
+      contractAddress
+      txHash
+      blockNumber
+    }
+  }
+  allItemCanceleds{
+  nodes{
+      nftAddress
+    tokenId
+  }
+
+  }
+  allItemBoughts{
+  nodes{
+  tokenId
+    nftAddress}
+    
+  }
+}
+
+`
 // Main component that uses the custom hook
 export default function RecentlyListedNFTs() {
     return (

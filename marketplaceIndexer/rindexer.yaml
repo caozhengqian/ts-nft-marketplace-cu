@@ -15,9 +15,10 @@ contracts:
   - network: anvil
     address: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
     start_block: '0'
-  abi: ./abis/RocketTokenRETH.abi.json
+  abi: ./abis/NftMarketplace.abi.json
   include_events:
-  - name: Transfer
-  - name: Approval
+  - name: ItemListed
+  - name: ItemCanceled
+  - name: ItemBought
 global:
   health_port: 8080
