@@ -3,6 +3,50 @@ import { useMemo } from "react"
 import NFTBox from "./NFTBox"
 import Link from "next/link"
 
+interface NFTItem {
+    rindexerId: string
+    seller: string
+    nftAddress: string
+    price: string
+    tokenId: string
+    contractAddress: string
+    txHash: string
+    blockNumber: number
+}
+
+interface BounghtCancelled{
+    nftAddress: string
+    tokenId: string
+}
+interface NFTQueryResponse {
+    data: {
+        allItemListeds: {
+            nodes: NFTItem[]
+        }
+        allItemCanceleds: {
+            nodes: NFTItem[]
+        }
+        allItemBoughts: {
+            nodes: NFTItem[]
+        }
+    }
+}
+async function fetchRecentNFTs():Promise<NFTQueryResponse> {
+    const repsonse = await fetch("/api/graphql", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            query: GET_RECENT_NFTS,
+        }),
+    })
+    if (!repsonse.ok) {
+        throw new Error("Network response was not ok")
+    }
+    return repsonse.json()
+}
+
 const GET_RECENT_NFTS=`
 query AllItemListeds {
   allItemListeds(first: 20, orderBy: [BLOCK_NUMBER_DESC,TX_INDEX_DESC]){
@@ -33,6 +77,7 @@ query AllItemListeds {
 }
 
 `
+console.log(await fetchRecentNFTs())
 // Main component that uses the custom hook
 export default function RecentlyListedNFTs() {
     return (
