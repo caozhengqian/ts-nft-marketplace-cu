@@ -78,8 +78,42 @@ query AllItemListeds {
 
 `
 console.log(await fetchRecentNFTs())
+function useRecentlyListedNFTs(){
+    const {data, isLoading,error} = useQuery<NFTQueryResponse>({
+        queryKey:['recentNFTs'],
+        queryFn:fetchRecentNFTs,
+        // queryFn:fetchNFTs,
+    });
+    const nftDataList = useMemo(()=>{
+        if(!data) return []
+        const boughtNFTs = new Set<string>()
+        const cancelledNFTs = new Set<string>()
+        data.data.allItemBoughts.nodes.forEach((item)=>{
+            boughtNFTs.add(`${item.nftAddress}-${item.tokenId}`)
+        })
+        data.data.allItemCanceleds.nodes.forEach((item)=>{
+            cancelledNFTs.add(`${item.nftAddress}-${item.tokenId}`)
+        })
+        const availableNFTs = data.data.allItemListeds.nodes.filter(item => {
+            if (!item.nftAddress || !item.tokenId) return false
+
+            const key = `${item.nftAddress}-${item.tokenId}`
+            return !boughtNFTs.has(key) && !cancelledNFTs.has(key)
+        })
+         // Get the top 5
+        const recentNFTs = availableNFTs.slice(0, 100)
+                // Extract the specific data we need
+        return recentNFTs.map(nft => ({
+            tokenId: nft.tokenId,
+            contractAddress: nft.nftAddress,
+            price: nft.price,
+        }))
+    },[data])
+    return { isLoading, error, nftDataList }
+}
 // Main component that uses the custom hook
 export default function RecentlyListedNFTs() {
+    const { isLoading, error, nftDataList } = useRecentlyListedNFTs()
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="mt-8 text-center">
@@ -101,6 +135,20 @@ export default function RecentlyListedNFTs() {
                         console.error("Error loading NFT image")
                     }}
                 />
+                {nftDataList.map(nft => (
+                    <Link
+                        key={`${nft.contractAddress}-${nft.tokenId}`}
+                        href={`/buy-nft/${nft.contractAddress}/${nft.tokenId}`}
+                        className="block transform transition hover:scale-105"
+                    >
+                        <NFTBox
+                            key={`${nft.contractAddress}-${nft.tokenId}`}
+                            tokenId={nft.tokenId}
+                            contractAddress={nft.contractAddress}
+                            price={nft.price}
+                        />
+                    </Link>
+                ))}
             </div>
         </div>
     )
